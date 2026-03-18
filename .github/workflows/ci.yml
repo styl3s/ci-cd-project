@@ -1,0 +1,104 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Stage 1: Build Docker image and tag with commit SHA
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Build Docker image
+        run: |
+          docker build -t ci-cd-api:${{ github.sha }} .
+      
+      - name: Save Docker image
+        run: |
+          docker save ci-cd-api:${{ github.sha }} -o /tmp/image.tar
+      
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp/image.tar
+
+  # Stage 2: Execute pytest suite inside container, verify coverage ≥80%
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/image.tar
+      
+      - name: Run pytest with coverage verification
+        run: |
+          docker run --rm ci-cd-api:${{ github.sha }} \
+            pytest src/test_app.py --cov=src --cov-report=term --cov-fail-under=80
+
+  # Stage 3: Scan with Trivy, fail if HIGH or CRITICAL vulnerabilities
+  scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/image.tar
+      
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ci-cd-api:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+
+  # Stage 4: Push to Docker Hub only when all checks succeed
+  push:
+    needs: [test, scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/image.tar
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Tag and push to Docker Hub
+        run: |
+          docker tag ci-cd-api:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/ci-cd-api:${{ github.sha }}
+          docker tag ci-cd-api:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/ci-cd-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ci-cd-api:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ci-cd-api:latest
