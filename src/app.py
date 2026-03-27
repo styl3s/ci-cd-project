@@ -7,6 +7,10 @@ items = []
 
 @app.route('/health', methods=['GET'])
 def health():
+    """
+    Health check endpoint for monitoring service availability.
+    Returns 200 OK with healthy status.
+    """
     return jsonify({"status": "healthy"}), 200
 
 @app.route('/api/items', methods=['GET'])
