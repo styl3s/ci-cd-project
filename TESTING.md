@@ -71,13 +71,21 @@
 
 ---
 
-### Experiment 5: Another Failing Test
+### Experiment 5: Another Failing Test ❌
 **Type:** Test failure
-**Date:** 
-**Change:** Break different test assertion
-**Commit SHA:** 
+**Date:** March 18, 2026
+**Change:** Modified test_create_item_success assertion (expected 200 instead of 201)
+**Commit SHA:** 1332611
 **Expected:** Pipeline fails at test stage
-**Result:** 
+**Result:** ✅ GATE WORKED - Test failure detected
+
+**Pipeline behavior:**
+- ✅ Build: Succeeded
+- ❌ Test: FAILED (AssertionError in test_create_item_success)
+- ⏸️ Scan: Skipped
+- ⏸️ Push: Skipped
+
+**Error:** AssertionError: assert 201 == 200 
 
 ---
 
