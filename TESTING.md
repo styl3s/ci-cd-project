@@ -12,23 +12,40 @@
 
 ---
 
-### Experiment 2: Deliberately Failing Test
+### Experiment 2: Deliberately Failing Test ❌
 **Type:** Test failure
-**Date:** 
-**Change:** Modify test assertion to fail
-**Commit SHA:** 
+**Date:** March 18, 2026
+**Change:** Modified test assertion in test_health_endpoint (expected "broken" instead of "healthy")
+**Commit SHA:** 95c6846
 **Expected:** Pipeline fails at test stage
-**Result:** 
+**Result:** ✅ GATE WORKED - Test job failed as expected
+
+**Pipeline behavior:**
+- ✅ Build: Succeeded
+- ❌ Test: FAILED (caught the broken assertion)
+- ⏸️ Scan: Skipped (dependency on test)
+- ⏸️ Push: Skipped (dependency on test)
+
+**Error:** AssertionError in test_health_endpoint - assert {'status': 'healthy'} == {'status': 'broken'} 
 
 ---
 
-### Experiment 3: Reduced Test Coverage
+### Experiment 3: Reduced Test Coverage ❌
 **Type:** Coverage below 80%
-**Date:** 
-**Change:** Delete one test function
-**Commit SHA:** 
+**Date:** March 18, 2026
+**Change:** Deleted 5 test functions, kept only test_health_endpoint
+**Commit SHA:** f56aaaf
 **Expected:** Pipeline fails at test stage (coverage check)
-**Result:** 
+**Result:** ✅ GATE WORKED - Coverage gate blocked deployment
+
+**Pipeline behavior:**
+- ✅ Build: Succeeded
+- ❌ Test: FAILED (coverage 74.19% < 80% threshold)
+- ⏸️ Scan: Skipped
+- ⏸️ Push: Skipped
+
+**Coverage:** Dropped from 95% to 74.19% (failed threshold check)
+**Error:** "FAIL Required test coverage of 80% not reached. Total coverage: 74.19%"
 
 ---
 
