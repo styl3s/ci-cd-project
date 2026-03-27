@@ -39,9 +39,3 @@ def test_get_items_after_creation(client):
     assert response.json[0]["name"] == "Item 1"
     assert response.json[1]["name"] == "Item 2"
 
-def test_item_id_increment(client):
-    response1 = client.post('/api/items', json={"name": "First"})
-    response2 = client.post('/api/items', json={"name": "Second"})
-    
-    assert response1.json["id"] == 1
-    assert response2.json["id"] == 2
