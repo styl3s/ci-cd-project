@@ -1,0 +1,32 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Deploy to Railway Dev
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEV_TOKEN }}
+        run: |
+          railway link ${{ secrets.RAILWAY_DEV_SERVICE_ID }}
+          railway up --detach
+      
+      - name: Wait for deployment
+        run: sleep 45
+      
+      - name: Get deployment URL
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEV_TOKEN }}
+        run: |
+          echo "Deployment complete"
+          echo "Check Railway dashboard for service URL"
