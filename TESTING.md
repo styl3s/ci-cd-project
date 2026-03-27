@@ -2,7 +2,7 @@
 
 ## Controlled Experiments
 
-### Experiment 1: Baseline (Compliant Change) ✅
+### Experiment 1: Baseline (Compliant Change) 
 **Type:** Valid change that should pass all gates
 **Date:** March 18, 2026
 **Change:** Python 3.13-slim upgrade fixed vulnerabilities
@@ -12,7 +12,7 @@
 
 ---
 
-### Experiment 2: Deliberately Failing Test ❌
+### Experiment 2: Deliberately Failing Test 
 **Type:** Test failure
 **Date:** March 18, 2026
 **Change:** Modified test assertion in test_health_endpoint (expected "broken" instead of "healthy")
@@ -49,13 +49,25 @@
 
 ---
 
-### Experiment 4: Vulnerable Dependency
+### Experiment 4: Vulnerable Dependency ❌❌
 **Type:** Security vulnerability
-**Date:** 
-**Change:** Downgrade Flask to known vulnerable version
-**Commit SHA:** 
+**Date:** March 18, 2026
+**Change:** Downgraded Flask from 3.0.0 to 2.0.0 (contains known CVEs)
+**Commit SHA:** f224c00
 **Expected:** Pipeline fails at scan stage (Trivy blocks)
-**Result:** 
+**Result:** ✅ MULTIPLE GATES WORKED - Both test AND scan caught the issue!
+
+**Pipeline behavior:**
+- ✅ Build: Succeeded
+- ❌ Test: FAILED (ImportError: cannot import 'url_quote' from werkzeug)
+- ❌ Scan: FAILED (Trivy detected HIGH/CRITICAL vulnerabilities)
+- ⏸️ Push: Skipped (blocked by failures)
+
+**Notes:** Defense in depth demonstrated - vulnerability caught by two independent gates:
+1. Test gate caught Flask 2.0.0 incompatibility with Python 3.13
+2. Security gate caught CVEs in outdated Flask version
+
+**Error:** "ImportError: cannot import name 'url_quote' from 'werkzeug.urls'" 
 
 ---
 
