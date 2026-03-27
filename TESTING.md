@@ -99,13 +99,23 @@
 
 ---
 
-### Experiment 7: Another Vulnerable Package
+### Experiment 7: Another Vulnerable Dependency ❌
 **Type:** Security vulnerability
-**Date:** 
-**Change:** Add old pytest version with known CVE
-**Commit SHA:** 
-**Expected:** Pipeline fails at scan stage
-**Result:** 
+**Date:** March 18, 2026
+**Change:** Downgraded pytest from 7.4.3 to 6.0.0 (incompatible with Python 3.13)
+**Commit SHA:** ee487a9
+**Expected:** Pipeline fails at scan stage (Trivy blocks)
+**Result:** ✅ TEST GATE CAUGHT IT FIRST - Test failure blocked before scan
+
+**Pipeline behavior:**
+- ✅ Build: Succeeded
+- ❌ Test: FAILED (pytest 6.0.0 incompatible with Python 3.13)
+- ⏸️ Scan: Skipped (didn't reach this stage)
+- ⏸️ Push: Skipped
+
+**Error:** "TypeError: required field 'lineno' missing from alias"
+
+**Note:** Test gate provided earlier detection than security scan - defense in depth working as designed.
 
 ---
 
