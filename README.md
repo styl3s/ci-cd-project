@@ -48,3 +48,8 @@ curl http://localhost:5000/health
 ## Project Status
 ✅ Phase 1: Complete
 ✅ Phase 2: Complete (CI Pipeline with quality gates)
+
+
+## Deployment Environments
+- **Development:** Auto-deploys from `dev` branch
+- **Production:** Manual deployment with approval
