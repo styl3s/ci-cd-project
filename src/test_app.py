@@ -20,7 +20,7 @@ def test_get_items_empty(client):
 
 def test_create_item_success(client):
     response = client.post('/api/items', json={"name": "Test Item"})
-    assert response.status_code == 200  # Changed from 201 to 200 (WRONG!)
+    assert response.status_code == 201
     assert response.json["name"] == "Test Item"
     assert "id" in response.json
 
