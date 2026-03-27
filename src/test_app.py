@@ -13,7 +13,10 @@ def test_health_endpoint(client):
     assert response.status_code == 200
     assert response.json == {"status": "healthy"}
 
-
+def test_get_items_empty(client):
+    response = client.get('/api/items')
+    assert response.status_code == 200
+    assert response.json == []
 
 def test_create_item_success(client):
     response = client.post('/api/items', json={"name": "Test Item"})
@@ -21,7 +24,10 @@ def test_create_item_success(client):
     assert response.json["name"] == "Test Item"
     assert "id" in response.json
 
-
+def test_create_item_missing_name(client):
+    response = client.post('/api/items', json={})
+    assert response.status_code == 400
+    assert "error" in response.json
 
 def test_get_items_after_creation(client):
     client.post('/api/items', json={"name": "Item 1"})
