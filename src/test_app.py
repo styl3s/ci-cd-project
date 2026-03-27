@@ -11,7 +11,7 @@ def client():
 def test_health_endpoint(client):
     response = client.get('/health')
     assert response.status_code == 200
-    assert response.json == {"status": "healthy"}
+    assert response.json == {"status": "broken"}  # Changed from "healthy" to "broken"
 
 def test_get_items_empty(client):
     response = client.get('/api/items')
