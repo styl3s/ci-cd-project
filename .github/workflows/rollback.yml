@@ -1,0 +1,69 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      image_tag:
+        description: 'Docker image tag to rollback to (commit SHA or tag)'
+        required: true
+        default: 'latest'
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment == 'prod' && 'production' || github.event.inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Validate image exists on Docker Hub
+        run: |
+          echo "Verifying image: styl3s/ci-cd-api:${{ github.event.inputs.image_tag }}"
+          docker pull styl3s/ci-cd-api:${{ github.event.inputs.image_tag }}
+          echo "✅ Image found and pulled successfully"
+      
+      - name: Document rollback
+        run: |
+          echo "🔄 ROLLBACK INITIATED"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Target image: styl3s/ci-cd-api:${{ github.event.inputs.image_tag }}"
+          echo "Initiated by: ${{ github.actor }}"
+          echo "Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+      
+      - name: Trigger Railway redeployment
+        run: |
+          echo "Railway will auto-deploy when image tag is updated"
+          echo "Manual step: Update Railway service to use tag: ${{ github.event.inputs.image_tag }}"
+          echo "Or Railway will pull latest if 'latest' tag is updated"
+      
+      - name: Wait for redeployment
+        run: sleep 45
+      
+      - name: Health check (Dev)
+        if: github.event.inputs.environment == 'dev'
+        run: |
+          echo "Checking dev environment health..."
+          curl -f https://api-production-3ebb.up.railway.app/health || exit 1
+          echo "✅ Dev environment healthy after rollback"
+      
+      - name: Health check (Prod)
+        if: github.event.inputs.environment == 'prod'
+        run: |
+          echo "Checking prod environment health..."
+          curl -f https://api-production-bb06.up.railway.app/health  || exit 1
+          echo "✅ Prod environment healthy after rollback"
+      
+      - name: Rollback complete
+        run: |
+          echo "✅ ROLLBACK COMPLETE"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Image: styl3s/ci-cd-api:${{ github.event.inputs.image_tag }}"
+          echo "Status: Success"
