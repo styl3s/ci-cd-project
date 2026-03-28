@@ -53,3 +53,7 @@ curl http://localhost:5000/health
 ## Deployment Environments
 - **Development:** Auto-deploys from `dev` branch
 - **Production:** Manual deployment with approval
+
+## Latest Update
+- Fixed Railway deployment workflows
+- Auto-deploy on Docker image updates
