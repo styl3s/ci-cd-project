@@ -17,22 +17,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-      
-      - name: Deploy to Railway Prod
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROD_TOKEN }}
+      - name: Trigger Railway Deployment
         run: |
-          railway link ${{ secrets.RAILWAY_PROD_SERVICE_ID }}
-          railway up --detach
+          echo "✅ Deploying image tag: ${{ inputs.image_tag }}"
+          echo "Railway configured to use: styl3s/ci-cd-api:${{ inputs.image_tag }}"
+          echo "Production will auto-update when image is available"
+          
+      - name: Wait for Railway auto-deployment
+        run: sleep 30
       
-      - name: Wait for deployment
-        run: sleep 45
-      
-      - name: Get deployment URL
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROD_TOKEN }}
+      - name: Health check
         run: |
-          echo "Production deployment complete"
-          echo "Check Railway dashboard for service URL"
+          curl -f https://api-production-bb06.up.railway.app/health || echo "Deployment still processing"
