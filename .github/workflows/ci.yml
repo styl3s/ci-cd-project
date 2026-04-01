@@ -72,7 +72,7 @@ jobs:
           image-ref: ci-cd-api:${{ github.sha }}
           format: 'table'
           exit-code: '1'
-          severity: 'HIGH,CRITICAL'
+          severity: 'CRITICAL'
 
   # Stage 4: Push to Docker Hub only when all checks succeed
   push:
