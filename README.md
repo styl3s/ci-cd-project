@@ -299,3 +299,7 @@ ci-cd-project/
 - [x] Average rollback time: 1m 4s
 - [x] Comprehensive documentation
 - [x] Architecture diagrams
+
+## Live Demo - Presentation
+- Automated CI/CD Pipeline
+- Date: April 1, 2026
