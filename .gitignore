@@ -9,3 +9,13 @@ htmlcov/
 .env
 dist/
 build/
+# Environment variables
+.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# SQLAlchemy
+migrations/
