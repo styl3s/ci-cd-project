@@ -19,9 +19,11 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing configuration"""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # In-memory database for tests
-    JWT_SECRET_KEY = 'test-secret-key'
-
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    JWT_SECRET_KEY = 'test-secret-key-that-is-at-least-32-characters-long-for-hmac-sha256-algorithm'
+    JWT_TOKEN_LOCATION = ['headers']
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_HEADER_TYPE = 'Bearer'
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False

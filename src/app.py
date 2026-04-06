@@ -18,6 +18,9 @@ def create_app(config_name='default'):
     # Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
+    
+    # JWT configuration - ensure it's set
+    app.config['JWT_SECRET_KEY'] = app.config.get('JWT_SECRET_KEY', 'fallback-secret-key-must-be-at-least-32-characters-long')
     jwt = JWTManager(app)
     
     # Create tables
@@ -34,8 +37,11 @@ def create_app(config_name='default'):
     @app.route('/api/auth/register', methods=['POST'])
     def register():
         """Register a new user"""
-        data = request.get_json()
-        
+        try:
+            data = request.get_json(force=True)
+        except:
+            return jsonify({"error": "Invalid JSON"}), 400
+            
         # Validate input
         if not data or not data.get('username') or not data.get('email') or not data.get('password'):
             return jsonify({"error": "Missing required fields"}), 400
@@ -59,8 +65,11 @@ def create_app(config_name='default'):
     @app.route('/api/auth/login', methods=['POST'])
     def login():
         """Login user and return JWT token"""
-        data = request.get_json()
-        
+        try:
+            data = request.get_json(force=True)
+        except:
+            return jsonify({"error": "Invalid JSON"}), 400
+            
         if not data or not data.get('username') or not data.get('password'):
             return jsonify({"error": "Missing username or password"}), 400
         
@@ -109,7 +118,11 @@ def create_app(config_name='default'):
     def create_task():
         """Create a new task"""
         user_id = get_jwt_identity()
-        data = request.get_json()
+        
+        try:
+            data = request.get_json(force=True)
+        except:
+            return jsonify({"error": "Invalid JSON"}), 400
         
         # Validate input
         if not data or not data.get('title'):
@@ -163,7 +176,11 @@ def create_app(config_name='default'):
     def update_task(task_id):
         """Update a task"""
         user_id = get_jwt_identity()
-        data = request.get_json()
+        
+        try:
+            data = request.get_json(force=True)
+        except:
+            return jsonify({"error": "Invalid JSON"}), 400
         
         task = Task.query.filter_by(id=task_id, user_id=user_id).first()
         
