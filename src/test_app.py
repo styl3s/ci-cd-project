@@ -24,20 +24,29 @@ def client(app):
 def auth_headers(client):
     """Create user and return auth headers"""
     # Register user
-    client.post('/api/auth/register', json={
-        'username': 'testuser',
-        'email': 'test@example.com',
-        'password': 'testpass123'
-    })
+    client.post('/api/auth/register', 
+        json={
+            'username': 'testuser',
+            'email': 'test@example.com',
+            'password': 'testpass123'
+        },
+        content_type='application/json'
+    )
     
     # Login
-    response = client.post('/api/auth/login', json={
-        'username': 'testuser',
-        'password': 'testpass123'
-    })
+    response = client.post('/api/auth/login', 
+        json={
+            'username': 'testuser',
+            'password': 'testpass123'
+        },
+        content_type='application/json'
+    )
     
     token = response.get_json()['access_token']
-    return {'Authorization': f'Bearer {token}'}
+    return {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
 
 # ==================== HEALTH CHECK TESTS ====================
 
