@@ -19,7 +19,7 @@ def create_app(config_name='default'):
     db.init_app(app)
     bcrypt.init_app(app)
     
-    # JWT configuration - ensure it's set
+    # JWT configuration
     app.config['JWT_SECRET_KEY'] = app.config.get('JWT_SECRET_KEY', 'fallback-secret-key-must-be-at-least-32-characters-long')
     jwt = JWTManager(app)
     
@@ -27,33 +27,26 @@ def create_app(config_name='default'):
     with app.app_context():
         db.create_all()
     
-    # ==================== HEALTH CHECK ====================
     @app.route('/health', methods=['GET'])
     def health():
-        """Health check endpoint"""
         return jsonify({"status": "healthy"}), 200
     
-    # ==================== AUTHENTICATION ====================
     @app.route('/api/auth/register', methods=['POST'])
     def register():
-        """Register a new user"""
         try:
             data = request.get_json(force=True)
         except:
             return jsonify({"error": "Invalid JSON"}), 400
             
-        # Validate input
         if not data or not data.get('username') or not data.get('email') or not data.get('password'):
             return jsonify({"error": "Missing required fields"}), 400
         
-        # Check if user exists
         if User.query.filter_by(username=data['username']).first():
             return jsonify({"error": "Username already exists"}), 400
         
         if User.query.filter_by(email=data['email']).first():
             return jsonify({"error": "Email already exists"}), 400
         
-        # Create user
         user = User(username=data['username'], email=data['email'])
         user.set_password(data['password'])
         
@@ -64,7 +57,6 @@ def create_app(config_name='default'):
     
     @app.route('/api/auth/login', methods=['POST'])
     def login():
-        """Login user and return JWT token"""
         try:
             data = request.get_json(force=True)
         except:
@@ -73,33 +65,29 @@ def create_app(config_name='default'):
         if not data or not data.get('username') or not data.get('password'):
             return jsonify({"error": "Missing username or password"}), 400
         
-        # Find user
         user = User.query.filter_by(username=data['username']).first()
         
         if not user or not user.check_password(data['password']):
             return jsonify({"error": "Invalid credentials"}), 401
         
-        # Create token
-        access_token = create_access_token(identity=user.id)
+        # Convert user.id to string for JWT
+        access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
             "access_token": access_token,
             "user": user.to_dict()
         }), 200
     
-    # ==================== TASK CRUD ====================
     @app.route('/api/tasks', methods=['GET'])
     @jwt_required()
     def get_tasks():
-        """Get all tasks for the authenticated user"""
-        user_id = get_jwt_identity()
+        # Convert back to int
+        user_id = int(get_jwt_identity())
         
-        # Optional filters
         status = request.args.get('status')
         priority = request.args.get('priority')
         category = request.args.get('category')
         
-        # Build query
         query = Task.query.filter_by(user_id=user_id)
         
         if status:
@@ -116,27 +104,23 @@ def create_app(config_name='default'):
     @app.route('/api/tasks', methods=['POST'])
     @jwt_required()
     def create_task():
-        """Create a new task"""
-        user_id = get_jwt_identity()
+        # Convert back to int
+        user_id = int(get_jwt_identity())
         
         try:
             data = request.get_json(force=True)
         except:
             return jsonify({"error": "Invalid JSON"}), 400
         
-        # Validate input
         if not data or not data.get('title'):
             return jsonify({"error": "Title is required"}), 400
         
-        # Validate status
         if data.get('status') and data['status'] not in ['todo', 'in_progress', 'done']:
             return jsonify({"error": "Invalid status"}), 400
         
-        # Validate priority
         if data.get('priority') and data['priority'] not in ['low', 'medium', 'high']:
             return jsonify({"error": "Invalid priority"}), 400
         
-        # Create task
         task = Task(
             title=data['title'],
             description=data.get('description'),
@@ -146,12 +130,11 @@ def create_app(config_name='default'):
             user_id=user_id
         )
         
-        # Parse due date if provided
         if data.get('due_date'):
             try:
                 task.due_date = datetime.fromisoformat(data['due_date'])
             except ValueError:
-                return jsonify({"error": "Invalid due_date format (use ISO format)"}), 400
+                return jsonify({"error": "Invalid due_date format"}), 400
         
         db.session.add(task)
         db.session.commit()
@@ -161,8 +144,8 @@ def create_app(config_name='default'):
     @app.route('/api/tasks/<int:task_id>', methods=['GET'])
     @jwt_required()
     def get_task(task_id):
-        """Get a specific task"""
-        user_id = get_jwt_identity()
+        # Convert back to int
+        user_id = int(get_jwt_identity())
         
         task = Task.query.filter_by(id=task_id, user_id=user_id).first()
         
@@ -174,8 +157,8 @@ def create_app(config_name='default'):
     @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
     @jwt_required()
     def update_task(task_id):
-        """Update a task"""
-        user_id = get_jwt_identity()
+        # Convert back to int
+        user_id = int(get_jwt_identity())
         
         try:
             data = request.get_json(force=True)
@@ -187,7 +170,6 @@ def create_app(config_name='default'):
         if not task:
             return jsonify({"error": "Task not found"}), 404
         
-        # Update fields
         if 'title' in data:
             task.title = data['title']
         if 'description' in data:
@@ -218,8 +200,8 @@ def create_app(config_name='default'):
     @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
     @jwt_required()
     def delete_task(task_id):
-        """Delete a task"""
-        user_id = get_jwt_identity()
+        # Convert back to int
+        user_id = int(get_jwt_identity())
         
         task = Task.query.filter_by(id=task_id, user_id=user_id).first()
         
@@ -233,7 +215,6 @@ def create_app(config_name='default'):
     
     return app
 
-# Create app instance
 app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
 
 if __name__ == '__main__':
