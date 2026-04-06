@@ -7,12 +7,16 @@ Automated CI/CD pipeline with multi-environment deployment, quality gates, and r
 This project demonstrates production-grade DevOps practices using GitHub Actions, Docker, security scanning, and automated deployment to Railway.app. The pipeline enforces quality gates at multiple stages and provides reliable rollback mechanisms.
 
 **Key Features:**
+- ✅ RESTful Task Management API with authentication
+- ✅ User registration and JWT-based auth
+- ✅ Full CRUD operations on tasks
+- ✅ SQLite database with SQLAlchemy ORM
 - ✅ Automated CI/CD with 4-stage pipeline
 - ✅ Container-based testing for environment parity
-- ✅ Security scanning with Trivy (blocks HIGH/CRITICAL vulnerabilities)
+- ✅ Security scanning with Trivy
 - ✅ Multi-environment deployment (dev/prod)
 - ✅ Automated rollback capability (<2 minutes average)
-- ✅ 95%+ deployment success rate
+- ✅ 80%+ test coverage with 23 comprehensive tests
 
 ---
 
@@ -21,6 +25,9 @@ This project demonstrates production-grade DevOps practices using GitHub Actions
 ### Application
 - **Language:** Python 3.13
 - **Framework:** Flask 3.0.0
+- **Database:** SQLite (SQLAlchemy ORM)
+- **Authentication:** JWT (Flask-JWT-Extended)
+- **Password Hashing:** Bcrypt
 - **Testing:** pytest 7.4.3 + pytest-cov 4.1.0
 
 ### DevOps Tools
@@ -89,17 +96,107 @@ GET /health
 Response: {"status": "healthy"}
 ```
 
-### Items API
-```bash
-# Get all items
-GET /api/items
-Response: [{"id": 1, "name": "Item 1"}, ...]
+### Authentication
 
-# Create item
-POST /api/items
-Body: {"name": "New Item"}
-Response: {"id": 2, "name": "New Item"}
+#### Register User
+```bash
+POST /api/auth/register
+Body: {
+  "username": "john",
+  "email": "john@example.com",
+  "password": "secure123"
+}
+Response: {
+  "id": 1,
+  "username": "john",
+  "email": "john@example.com",
+  "created_at": "2026-04-01T10:30:00"
+}
 ```
+
+#### Login
+```bash
+POST /api/auth/login
+Body: {
+  "username": "john",
+  "password": "secure123"
+}
+Response: {
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "user": { ... }
+}
+```
+
+### Task Management (Requires Authentication)
+
+#### Get All Tasks
+```bash
+GET /api/tasks
+Headers: Authorization: Bearer <token>
+Query Params: ?status=todo&priority=high&category=work
+Response: [
+  {
+    "id": 1,
+    "title": "Complete project",
+    "description": "Finish CI/CD implementation",
+    "status": "in_progress",
+    "priority": "high",
+    "category": "work",
+    "due_date": "2026-04-10T00:00:00",
+    "created_at": "2026-04-01T10:00:00",
+    "updated_at": "2026-04-01T14:30:00",
+    "user_id": 1
+  }
+]
+```
+
+#### Create Task
+```bash
+POST /api/tasks
+Headers: Authorization: Bearer <token>
+Body: {
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread",
+  "priority": "medium",
+  "status": "todo",
+  "category": "personal",
+  "due_date": "2026-04-05T18:00:00"
+}
+Response: { task object }
+```
+
+#### Get Single Task
+```bash
+GET /api/tasks/{id}
+Headers: Authorization: Bearer <token>
+Response: { task object }
+```
+
+#### Update Task
+```bash
+PUT /api/tasks/{id}
+Headers: Authorization: Bearer <token>
+Body: {
+  "status": "done",
+  "priority": "low"
+}
+Response: { updated task object }
+```
+
+#### Delete Task
+```bash
+DELETE /api/tasks/{id}
+Headers: Authorization: Bearer <token>
+Response: {"message": "Task deleted"}
+```
+
+### Task Properties
+- **title** (required): Task name
+- **description** (optional): Task details
+- **status** (optional): `todo`, `in_progress`, `done` (default: `todo`)
+- **priority** (optional): `low`, `medium`, `high` (default: `medium`)
+- **category** (optional): Custom category tag
+- **due_date** (optional): ISO format datetime
 
 ---
 
@@ -232,8 +329,10 @@ curl http://localhost:5000/health
 - **Target met:** ✅ All under 5 minutes
 
 ### Code Quality
-- **Test coverage:** 95%+
-- **Number of tests:** 6
+- **Test coverage:** 80%+ (target met)
+- **Number of tests:** 23
+- **API endpoints:** 9
+- **Database models:** 2 (User, Task)
 - **Production vulnerabilities:** 0 HIGH/CRITICAL
 
 ---
