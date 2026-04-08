@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_jwt_extended import (
     JWTManager, create_access_token, 
     jwt_required, get_jwt_identity
@@ -14,6 +15,15 @@ def create_app(config_name='default'):
     
     # Load configuration
     app.config.from_object(config[config_name])
+
+    # Enable CORS
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
     
     # Initialize extensions
     db.init_app(app)
