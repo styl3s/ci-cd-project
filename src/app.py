@@ -16,14 +16,8 @@ def create_app(config_name='default'):
     # Load configuration
     app.config.from_object(config[config_name])
 
-    # Enable CORS
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
+    # Enable CORS for all routes
+    CORS(app, origins="*", supports_credentials=True)
     
     # Initialize extensions
     db.init_app(app)
